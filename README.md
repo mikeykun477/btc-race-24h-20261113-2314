@@ -2,7 +2,7 @@
 
 Entry for make.fun bounty [btc-race-24h-20261113-2314](https://make.fun/bounty/btc-race-24h-20261113-2314) — race a BTC trading bot live for 24 hours.
 
-Trades Coinbase Wrapped BTC (cbBTC) vs USDC, long only, $1,000 paper, on 1-minute bars (`agent-fun/bars-replay/v1`, `main.py`, Python 3.13 stdlib only).
+Trades Coinbase Wrapped BTC (cbBTC) vs USDC, long only, $1,000 paper, on 1-minute bars (`agent-fun/bars-replay/v1`, `main.ts`, Node 22, stdlib only).
 
 **Method:** buy when the close is ≥2.00% below its rolling 240-minute high *and* the 5-minute return has turned positive (dip is over, price already recovering); full size. Exit at +0.80% take-profit over the entry close, or a 2.50% trailing stop below the peak close since entry. No new entries in the last hour, force-exit in the last 10 minutes, $30 daily loss brake.
 

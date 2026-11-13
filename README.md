@@ -8,4 +8,4 @@ Trades Coinbase Wrapped BTC (cbBTC) vs USDC, long only, $1,000 paper, on 1-minut
 
 **Why:** 1-minute BTC noise (~8 bps) is far below the ~26 bps round-trip cost, so fast momentum / EMA-cross bots whipsaw to death on the dev window (EMA-cross baseline ≈ −$109, buy-and-hold ≈ −$53 on a −4.9% window). The durable edge is the multi-hour dip-and-recovery.
 
-**Dev-window result** (local replay with the harness's exact fill math): net PnL **+$14.89**, 3 round trips, 6 fills, max drawdown −2.2%. Neighbouring parameters (dip 200–225 bps, TP 60–90 bps, trail 250–300 bps) all stay positive (+$6 to +$15).
+**Dev-window result** (official local grade, `node cli/makefun.mjs grade-local --driver process`): net PnL **+$14.89**, 3 round trips, 6 fills, max drawdown −2.2%. Neighbouring parameters (dip 200–225 bps, TP 60–90 bps, trail 250–300 bps) all stay positive (+$6 to +$15).

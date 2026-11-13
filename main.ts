@@ -42,6 +42,10 @@ const TRAIL_BPS = 250; // exit: trailing stop below the peak close
 const MAX_SLIPPAGE_BPS = 100; // cap on every order (1% past the latest close)
 const NO_ENTRY_AFTER_MIN = 1380; // no new entries in the last 60 minutes
 const FORCE_EXIT_AFTER_MIN = 1430; // force-exit in the last 10 minutes
+const REENTRY_COOLDOWN_BARS = 30; // wait 30 bars after an exit before re-entering:
+// the dip that just paid (or stopped) out is usually still falling, and the
+// D=175 variant of this bot lost money exactly by re-entering 1 bar after an
+// exit into a price that never recovered before the window ended.
 const DAILY_LOSS_BRAKE = 30_000_000n; // stop entering after $30 realised loss
 const MIN_NOTIONAL = 1_000_000n; // $1, the harness's minimum buy
 
@@ -49,6 +53,7 @@ const closes: number[] = [];
 const times: number[] = [];
 let entryClose: number | null = null;
 let peakClose: number | null = null;
+let lastExitSeq = -1000000; // seq of the bar the last exit was decided on
 let realised = 0n; // realised PnL in quote units (fills only)
 let lastCost = 0n; // notional of the position just exited (for PnL)
 
@@ -83,9 +88,10 @@ await runBars({
         peakClose = close;
       }
       peakClose = Math.max(peakClose as number, close);
-      const sell = (side: 'sell'): OrderInput[] => [
-        { side, symbol: SYMBOL, qty, max_slippage_bps: MAX_SLIPPAGE_BPS },
-      ];
+      const sell = (side: 'sell'): OrderInput[] => {
+        lastExitSeq = batch.seq;
+        return [{ side, symbol: SYMBOL, qty, max_slippage_bps: MAX_SLIPPAGE_BPS }];
+      };
       if (elapsedMin >= FORCE_EXIT_AFTER_MIN) return sell('sell');
       if (close * 10000 <= (peakClose as number) * (10000 - TRAIL_BPS)) return sell('sell');
       if (close * 10000 >= (entryClose as number) * (10000 + TAKE_PROFIT_BPS)) return sell('sell');
@@ -97,6 +103,7 @@ await runBars({
     peakClose = null;
     if (realised <= -DAILY_LOSS_BRAKE) return [];
     if (elapsedMin >= NO_ENTRY_AFTER_MIN) return [];
+    if (batch.seq - lastExitSeq < REENTRY_COOLDOWN_BARS) return [];
     if (closes.length <= LOOKBACK_BARS) return [];
     const high = Math.max(...closes.slice(-LOOKBACK_BARS));
     if (close * 10000 > high * (10000 - DIP_BPS)) return [];
